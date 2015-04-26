@@ -2,18 +2,23 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Client
+// Define a thread class for handling the incoming connection
+public class Client extends Thread
 {
+	private Thread t;
+	private String threadName;
+	   
 	// IO streams
 	private DataOutputStream toServer;
 	private DataInputStream fromServer;
 
-	public static void main( String[] args )
+	public Client(String name)
 	{
-		new Client();
+		threadName = name;
+		System.out.println("Creating " +  threadName );
 	}
 
-	public Client()
+	public void run() 
 	{
 		Scanner keyboard = new Scanner( System.in );
 
@@ -44,16 +49,28 @@ public class Client
 				toServer.flush();
 				System.out.println( "Sent command " + command + " to server" );
 
-				// Get area from the server
+				// Get result from the server
 				String result = fromServer.readUTF(); //block
 				
-				// Display to the text area
-				System.out.println( "Area received from server is " + result );
+				long threadId = Thread.currentThread().getId();
+				
+				// Display result
+				System.out.println( "[thread " + threadId + "] First word received from server is " + result );
 			}
 		}
 		catch ( IOException ex )
 		{
 			System.err.println( ex );
+		}
+	}
+	
+	public void start ()
+	{
+		System.out.println("Starting thread");
+		if (t == null)
+		{
+			t = new Thread (this, threadName);
+			t.start ();
 		}
 	}
 }

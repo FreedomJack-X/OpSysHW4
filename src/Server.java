@@ -11,12 +11,15 @@ public class Server
 
 	public Server()
 	{
-		System.out.println( "Server started at " + new Date() );
+		System.out.println( "Multithreaded Server started at " + new Date() );
 
 		try
 		{
 			// Create a server socket that will listen on port 9889
 			ServerSocket serverSocket = new ServerSocket( 9889 );
+			
+			Client T1 = new Client("Thread-1");
+		    T1.start();
 
 			while ( true )
 			{
@@ -66,7 +69,6 @@ public class Server
 								
 				// Send area back to the client
 				outputToClient.writeUTF(firstWord);
-
 				
 				System.out.println( "Command received from client: " + command);
 
@@ -77,5 +79,7 @@ public class Server
 		{
 			System.err.println( ex );
 		}
+		
+		System.out.println( "Multithreaded Server ended at " + new Date() );
 	}
 }
