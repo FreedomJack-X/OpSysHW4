@@ -15,19 +15,18 @@ public class Server
 
 		try
 		{
-			// Create a server socket that will listen on port 9889
-			ServerSocket serverSocket = new ServerSocket( 9889 );
+			ServerSocket serverSocket = new ServerSocket(8765);
+			Socket socket;
 			
-			Client T1 = new Client("Thread-1");
-		    T1.start();
-
 			while ( true )
 			{
+				//create new client
+				Client thread1 = new Client("Thread-1");
+			    thread1.start();
+				
 				// Listen for a connection request
-				Socket socket = serverSocket.accept();   // BLOCK
-
-				System.out.println( "Client connection rcvd at " + new Date() );
-
+				socket = serverSocket.accept();   // BLOCK
+				
 				// Create data input and output streams
 				//  for primitive data types
 				DataInputStream inputFromClient =
@@ -42,38 +41,66 @@ public class Server
 				String firstWord = splitStr[0];
 				System.out.println("First word is : " + firstWord);
 				
-				//STORE <filename> <bytes>\n<file-contents>
-				if (firstWord.equals("STORE"))
+				//ADD <filename> <bytes>\n
+				if (firstWord.equals("ADD"))
 				{
 					if (splitStr.length != 3)
-						return;
+					{
+						outputToClient.writeUTF("ERROR: format should be ADD <filename> <bytes>\n");
+						break;
+					}
+					
+					String filename = splitStr[1];
+					int numBytes = Integer.valueOf(splitStr[2]);
+					
+					System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
+					System.out.println("[thread " + thread1.getId() + "] Transferred file (" + numBytes + " bytes)");
+					System.out.println("[thread " + thread1.getId() + "] Sent: ACK");
+					System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
+					
+					//Upload file data
+					String filepath = "storage\\" + filename;
+					byte[] bytes = new byte[numBytes];
+					
+					BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(filename));
+					bufferedInput.read(bytes, 0, numBytes);
+					
+					BufferedOutputStream bufferedOut = new BufferedOutputStream(new FileOutputStream(filepath));
+					bufferedOut.write(bytes);
+					bufferedOut.flush();
+					
+					bufferedInput.close();
+					bufferedOut.close();
 				}
 				//READ <filename> <byte-offset> <length>\n
 				else if (firstWord.equals("READ"))
 				{
 					if (splitStr.length != 4)
-						return;
+					{
+						outputToClient.writeUTF("ERROR: format should be READ <filename> <byte-offset> <length>\n");
+						break;
+					}
+					
+					System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 				}
 				//DELETE <filename>\n
 				else if (firstWord.equals("DELETE"))
 				{
 					if (splitStr.length != 2)
-						return;
+						break;
 				}
 				//DIR\n
 				else if (firstWord.equals("DIR"))
 				{
 					if (splitStr.length != 1)
-						return;
+						break;
 				}
 								
 				// Send area back to the client
-				outputToClient.writeUTF(firstWord);
-				
-				System.out.println( "Command received from client: " + command);
-
-				socket.close();
+				//outputToClient.writeUTF(command);
 			}
+			
+			socket.close();
 		}
 		catch( IOException ex )
 		{

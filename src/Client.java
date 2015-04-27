@@ -25,9 +25,7 @@ public class Client extends Thread
 		try
 		{
 			// Create a socket to connect to the server
-			Socket socket = new Socket( "localhost", 9889 );
-			//Socket socket = new Socket( "linux02.cs.rpi.edu", 9889 );
-			// Socket socket = new Socket( "128.113.126.29", 9889 );
+			Socket socket = new Socket("localhost", 8765);
 
 			// Create an input stream to receive data from the server
 			fromServer = new DataInputStream( socket.getInputStream() );
@@ -55,7 +53,7 @@ public class Client extends Thread
 				long threadId = Thread.currentThread().getId();
 				
 				// Display result
-				System.out.println( "[thread " + threadId + "] First word received from server is " + result );
+				System.out.println( "[thread " + threadId + "] Rcvd: " + result);
 			}
 		}
 		catch ( IOException ex )
@@ -66,7 +64,7 @@ public class Client extends Thread
 	
 	public void start ()
 	{
-		System.out.println("Starting thread");
+		//System.out.println("Starting thread");
 		if (t == null)
 		{
 			t = new Thread (this, threadName);
