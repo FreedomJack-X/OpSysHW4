@@ -4,6 +4,11 @@ import java.util.*;
 
 public class Server
 {
+	private int totalFrames;
+	private int frameSize;
+	private int fileFrames; 
+	private byte[][] memory;
+	
 	public static void main( String[] args )
 	{
 		new Server();
@@ -17,6 +22,13 @@ public class Server
 		{
 			ServerSocket serverSocket = new ServerSocket(8765);
 			Socket socket;
+			
+			//constants
+			totalFrames = 32;
+			frameSize = 1024;
+			fileFrames = 4;
+			//create block of memory
+			memory = new byte[totalFrames][];
 			
 			while ( true )
 			{
@@ -33,63 +45,13 @@ public class Server
 
 				// below is the application-level protocol
 				String command = inputFromClient.readUTF(); // BLOCK
-
-				String[] splitStr = command.split(" ");
-				String firstWord = splitStr[0];
-				System.out.println("First word is : " + firstWord);
 				
-				//ADD <filename> <bytes>\n
-				if (firstWord.equals("ADD"))
+				String error = runCommand(thread1, command);
+				if (!error.equals(""))
 				{
-					if (splitStr.length != 3)
-					{
-						outputToClient.writeUTF("ERROR: format should be ADD <filename> <bytes>\n");
-						break;
-					}
-					
-					addFileToServer(thread1, command);
+					outputToClient.writeUTF(error);
+					break;
 				}
-				//READ <filename> <byte-offset> <length>\n
-				else if (firstWord.equals("READ"))
-				{
-					if (splitStr.length != 4)
-					{
-						outputToClient.writeUTF("ERROR: format should be READ <filename> <byte-offset> <length>\n");
-						break;
-					}
-					
-					System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
-					
-					//check if file exists
-					File file = new File(splitStr[1]);
-					if (!file.isFile())
-					{
-						outputToClient.writeUTF("Sent: ERROR NO SUCH FILE\n");
-						break;
-					}
-					
-					readFileOnServer(thread1, command);
-				}
-				//DELETE <filename>\n
-				else if (firstWord.equals("DELETE"))
-				{
-					if (splitStr.length != 2)
-					{
-						outputToClient.writeUTF("ERROR: format should be DELETE <filename>\n");
-						break;
-					}
-					
-					deleteFileFromServer(thread1, command);				
-				}
-				//DIR\n
-				else if (firstWord.equals("DIR"))
-				{
-					if (splitStr.length != 1)
-						break;
-				}
-								
-				// Send area back to the client
-				//outputToClient.writeUTF(command);
 			}
 			
 			socket.close();
@@ -100,6 +62,64 @@ public class Server
 		}
 		
 		System.out.println( "Multithreaded Server ended at " + new Date() );
+	}
+	
+	public String runCommand(Thread thread1, String command)
+	{
+		String[] splitStr = command.split(" ");
+		String firstWord = splitStr[0];
+		System.out.println("First word is : " + firstWord);
+		
+		//ADD <filename> <bytes>\n
+		if (firstWord.equals("ADD"))
+		{
+			if (splitStr.length != 3)
+			{
+				return "ERROR: format should be ADD <filename> <bytes>\n";
+			}
+			
+			addFileToServer(thread1, command);
+		}
+		//READ <filename> <byte-offset> <length>\n
+		else if (firstWord.equals("READ"))
+		{
+			if (splitStr.length != 4)
+			{
+				return "ERROR: format should be READ <filename> <byte-offset> <length>\n";
+			}
+			
+			System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
+			
+			//check if file exists
+			File file = new File(splitStr[1]);
+			if (!file.isFile())
+			{
+				return "Sent: ERROR NO SUCH FILE\n";
+			}
+			
+			readFileOnServer(thread1, command);
+		}
+		//DELETE <filename>\n
+		else if (firstWord.equals("DELETE"))
+		{
+			if (splitStr.length != 2)
+			{
+				return "ERROR: format should be DELETE <filename>\n";
+			}
+			
+			deleteFileFromServer(thread1, command);				
+		}
+		//DIR\n
+		else if (firstWord.equals("DIR"))
+		{
+			if (splitStr.length != 1)
+				return "ERROR: format should be DIR\n";
+		}
+						
+		// Send area back to the client
+		//outputToClient.writeUTF(command);
+		
+		return ""; //no error message
 	}
 	
 	public void addFileToServer(Thread thread1, String command)
@@ -144,12 +164,6 @@ public class Server
 		int byteOffset = Integer.valueOf(splitStr[2]);
 		int fileLength = Integer.valueOf(splitStr[3]);
 		
-		//constants
-		int totalFrames = 32;
-		int frameSize = 1024;
-		int fileFrames = 4; 
-		byte[] memory = new byte[totalFrames * frameSize];
-		
 		int bytesLeft = fileLength;
 		int currentByteOffset = byteOffset;
 		int currentPage = currentByteOffset / frameSize;
@@ -157,9 +171,20 @@ public class Server
 		
 		while (bytesLeft > 0)
 		{
-			System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
+			if (memory[currentFrame] == null)
+			{
+				memory[currentFrame] = new byte[frameSize];
+				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
 					" to frame " + currentFrame);
-
+			}
+			else
+			{
+				memory[currentFrame] = new byte[frameSize];
+				int oldPage = currentPage - fileFrames;
+				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
+						" to frame " + currentFrame + " (replaced page " + oldPage + ")");
+			}
+			
 			int numBytesSent = (currentPage + 1) * frameSize - currentByteOffset;
 			System.out.println("[thread " + thread1.getId() + "] Sent: ACK " + numBytesSent);
 			System.out.println("[thread " + thread1.getId() + "] Transferred " + numBytesSent + " bytes " +
@@ -177,7 +202,7 @@ public class Server
 				//write
 				for (int i = currentByteOffset; i < currentByteOffset + numBytesSent; i++)
 				{
-					memory[i] = bytes[i];
+					memory[currentFrame][i % frameSize] = bytes[i];
 				}
 
 				bufferedInput.close();
@@ -201,13 +226,15 @@ public class Server
 		//parameters
 		String[] splitStr = command.split(" ");
 		String sourcePath = splitStr[1];
-		
-		int fileFrames = 4; 
-				
+
 		System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
-		for (int i = 0; i < fileFrames; i++)
+		for (int i = 0; i < totalFrames; i++)
 		{
-			System.out.println("[thread " + thread1.getId() + "] Deallocated frame " + i);
+			if (memory[i] != null)
+			{
+				memory[i] = null;
+				System.out.println("[thread " + thread1.getId() + "] Deallocated frame " + i);
+			}
 		}
 
 		//delete file data
