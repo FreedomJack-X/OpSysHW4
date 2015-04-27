@@ -45,7 +45,7 @@ public class Client extends Thread
 				// Send the command to the server
 				toServer.writeUTF(command);
 				toServer.flush();
-				System.out.println( "Sent command " + command + " to server" );
+				//System.out.println( "Sent command " + command + " to server" );
 
 				// Get result from the server
 				String result = fromServer.readUTF(); //block
