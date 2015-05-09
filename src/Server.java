@@ -5,8 +5,9 @@ import java.util.*;
 public class Server
 {
 	private int totalFrames;
+	private int currentFrameOffset;
 	private int frameSize;
-	private int fileFrames; 
+	private int fileFrames;
 	private byte[][] memory;
 	
 	public static void main( String[] args )
@@ -25,6 +26,7 @@ public class Server
 			
 			//constants
 			totalFrames = 32;
+			currentFrameOffset = 0; //start at frame 0
 			frameSize = 1024;
 			fileFrames = 4;
 			//create block of memory
@@ -181,18 +183,20 @@ public class Server
 		
 		while (bytesLeft > 0)
 		{
-			if (memory[currentFrame] == null)
+			int actualFrame = currentFrame + currentFrameOffset;
+			
+			if (memory[actualFrame] == null)
 			{
-				memory[currentFrame] = new byte[frameSize];
+				memory[actualFrame] = new byte[frameSize];
 				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
-					" to frame " + currentFrame);
+					" to frame " + actualFrame);
 			}
 			else
 			{
-				memory[currentFrame] = new byte[frameSize];
+				memory[actualFrame] = new byte[frameSize];
 				int oldPage = currentPage - fileFrames;
 				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
-						" to frame " + currentFrame + " (replaced page " + oldPage + ")");
+						" to frame " + actualFrame + " (replaced page " + oldPage + ")");
 			}
 			
 			int numBytesSent = (currentPage + 1) * frameSize - currentByteOffset;
@@ -212,7 +216,7 @@ public class Server
 				//write
 				for (int i = currentByteOffset; i < currentByteOffset + numBytesSent; i++)
 				{
-					memory[currentFrame][i % frameSize] = bytes[i];
+					memory[actualFrame][i % frameSize] = bytes[i];
 				}
 
 				bufferedInput.close();
@@ -229,6 +233,9 @@ public class Server
 				System.err.println(ex);
 			}
 		}
+		
+		currentFrameOffset += fileFrames; //move to the next file block in memory
+		currentFrameOffset %= totalFrames; //make sure offset doesn't exceed max number frames in memory (32)
 	}
 	
 	public void deleteFileFromServer(Thread thread1, String command)

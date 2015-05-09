@@ -1,0 +1,461 @@
+
+David E. Goldschmidt, Ph.D.
+Garrido Text
+
+CSCI-4210-01
+CSCI-6140-01
+Mon/Thurs 2:00-3:50pm
+Sage 3510
+David E. Goldschmidt, Ph.D.
+
+Executive Officer
+Department of Computer Science
+Rensselaer Polytechnic Institute
+assignments
+
+Homeworks are to be completed individually or as specified in the assignment description. If teams are permitted, teams must not exceed three students. Note that teamwork is not required for any assignment.
+
+Unless otherwise noted, assignments are due by 11:59pm on the specified due date and are to be submitted via RPI LMS. Late assignments are penalized 20 points for being late. Late assignments may be submitted up to a maximum of 5 days (120 hours) after the deadline. Assignments cannot be accepted for credit after this 5-day grace period.
+Compilation
+
+For C programs (Homeworks #1 and #3), use gcc to compile your code and specify -Wall; all compiler warnings must be addressed (fixed) before submitting your assignment. Further, do not use any additional flags with gcc.
+
+For C++ programs, use g++ to compile your code and, as with C, specify -Wall and ensure all compiler warnings are addressed (fixed) before submitting your assignment.
+
+For Java programs, use javac to compile your code and java to execute it.
+
+For any other language, please confirm language, version, libraries, etc. with me and the TAs first.
+
+?hide contact information
+My Office: 	Lally 209
+My Office Hours: 	Mon/Thurs 12:30-1:45pm; Tues 1:00-2:50pm
+NO OFFICE HOURS 4/23
+EXTRA OFFICE HOURS 4/24 11:00AM-12:30PM
+My Email: 	goldschmidt@gmail.com
+Shigeru Imai
+TA: 	Shigeru Imai
+Office Hours: 	Tues 3:00-4:50PM (AE 119)
+Fri 1:00-2:50PM (AE 119)
+NO OFFICE HOURS 5/5-5/15
+Email: 	imais@rpi.edu
+Bo Yuan
+TA: 	Bo Yuan
+Office Hours: 	Thurs 12:00-1:50PM (AE 217)
+Thurs 6:00-7:50PM (AE 217)
+Email: 	yuanb@rpi.edu
+
+Ubuntu Required
+
+With multiple flavors of Linux available, please be sure to use Ubuntu version 14.04 LTS for homeworks. This will be the platform on which testing and grading will be performed.
+
+Ubuntu is a free download (click here for Ubuntu download site). For installations on Windows, you do not need to re-partition your hard drive.
+
+Homework #1 - Process Management and Shells in C
+
+Due 11:59PM Wednesday 3/4
+
+?show details
+Homework #2 - Process Management Simulation System
+
+Due 11:59PM Wednesday 3/18
+
+?show details
+Homework #3 - Threads in C
+
+Due 11:59PM Wednesday 4/8
+
+?show details
+Homework #4 - Sockets-based Storage Server
+
+Due 11:59PM Wednesday 5/13
+
+?hide details
+
+This assignment is to be completed individually or in teams of up to three students. Beyond your team, do not share code or review anyone else's code.
+
+Submit your homework via RPI LMS as a single compressed and zipped file (using tar and gzip); include only source code and documentation files.
+
+To package up your submission, use tar and gzip. More specifically, create a compressed tar file using your RCS userid, as in goldsd.tar.gz, that contains your source files (e.g. main.c and file2.c); include a readme.txt file only if necessary. Here's an example:
+
+bash$ tar cvf goldsd.tar main.c file2.c readme.txt
+main.c
+file2.c
+readme.txt
+bash$ gzip -9 goldsd.tar
+
+Be sure to comment your code and include all team member names in a comment at the top of each file submitted.
+
+Purpose:
+In this fourth (and final) assignment, you'll write server code to implement a storage server. You can use any language you like, as long as it compiles and runs on Ubuntu and has support for server sockets. As part of your server implementation, you will implement some fundamental memory management concepts, in particular, paging.
+
+For your server, clients connect via TCP sockets to server port 8765 (you may hard-code this port number). Your server must not be a single-threaded iterative server or a multiplexing select-based server. Your server must use either threads or child processes for its implementation.
+
+Your server must support clients implemented in any language (e.g. C, Java, Python, etc.). Though you only need to submit your server code, feel free to create one or more test clients. Test clients will not be provided to you. You should also use telnet and netcat to test your server.
+
+Application-Level Protocol:
+Clients connect to the server and can add, delete, and read files. Clients can also request a list of files available on the server. Note that both text and binary (e.g. image) files must be supported.
+
+The application-level protocol between client and server is a line-based protocol (see below). Streams of bytes (characters) are transmitted between clients and your server.
+
+Note that this protocol requires a connection-based protocol at the transport layer (i.e., TCP). Once a client is connected, your server must handle as many commands (i.e., STORE, DELETE, READ, etc.) as necessary, closing the socket connection and terminating only when it detects that the remote client side has closed its socket.
+
+The application-level protocol must be implemented exactly as shown below:
+
+Storage Server Commands:
+
+STORE <filename> <bytes>\n<file-contents>
+-- add <filename> to the storage server
+-- if the file already exists, return an "ERROR: FILE EXISTS\n" error
+-- return "ACK" if successful
+-- return "ERROR: <error-description>\n" if unsuccessful
+
+
+READ <filename> <byte-offset> <length>\n
+-- server returns <length> bytes of the content of <filename>
+   starting at <byte-offset>
+-- note that this does NOT remove the file on the server
+-- if the file does not exist, return an "ERROR: NO SUCH FILE\n" error
+-- if the file byte range is invalid, return an "ERROR: INVALID BYTE RANGE\n" error
+-- return "ACK" if successful
+-- return "ERROR: <error-description>\n" if unsuccessful
+-- note that the requested content may be returned using multiple ACK messages
+-- if "ACK" is sent, follow it with length and data, as follows:
+
+      ACK <bytes>\n<file-contents>
+
+
+DELETE <filename>\n
+-- delete file <filename> from the storage server
+-- if the file does not exist, return an "ERROR: NO SUCH FILE\n" error
+-- return "ACK" if successful
+-- return "ERROR: <error-description>\n" if unsuccessful
+
+
+DIR\n
+-- server returns the list of files currently stored on the server
+-- the list need not be in any specific order
+-- the format of the message containing the list of files is as follows:
+
+      <number-of-files>\n<filename1>\n<filename2>\netc.\n
+
+-- if no files are stored, "0\n" is returned
+
+
+Note that errors sent by the server adhere to the following format,
+ with error-description set accordingly:
+
+      ERROR: <error-description>\n
+
+Expect the client to display the error description to the user.
+
+Commands are case-sensitive and you should ensure that invalid commands received by the server do not crash the server. In general, return an "ERROR" and an error description if something is incorrect or goes wrong.
+
+To delimit messages or message fields, note the use of newline '\n' characters. This should help to determine message boundaries.
+
+Also note that subdirectories are not supported. A filename is simply a valid filename without any relative or absolute path specified. Be careful to stick to the protocol or else your server might not work with all clients (and with all tests we use for grading)!
+
+You may assume that the correct number of bytes will be sent and received by client and server (and vice versa). In practice, this is not a safe assumption, but it should simplify your implementation.
+
+Server Memory Management:
+To study memory management concepts, your server must implement a non-contiguous memory allocation scheme to store file data in your running server program. Using a virtual memory approach, each file will be assigned a fixed number of frames, paging to disk as necessary. In other words, your server will cache file data in its memory by using a non-contiguous memory allocation scheme combined with paging.
+
+First, implement a non-contiguous memory allocation scheme in your server by allocating nframes frames, where each frame is sizeframe bytes. Use default values of nframes=32 frames and sizeframe=1024 bytes, though test with other values. Given these defaults, you would allocate 32,768 bytes; you could use calloc() to do so and have an array of char of that size.
+
+Second, set the number of frames per file, nframes to a default value of 4. This is the maximum number of frames to be allocated to each file.
+
+Each file is sliced up into equally sized pages, where the page size sizepage equals sizeframe bytes. In other words, the page size is the same as the frame size.
+
+To keep track of what file data is in your server's memory, implement a page table that maps pages to frames of your server's memory. For each file stored, your server should know what pages are in memory, if any. Note that all file data is stored on disk, regardless.
+
+When a valid STORE command is received, store the file data to disk. Do not store any of the file data (i.e., pages) in your server's memory yet.
+
+When a valid READ command is received, use your page table to determine if any of the requested data is already in your server's memory. If not, use on-demand paging to retrieve the data from disk and store in memory. Send at most one frame of data back to the client at each write() call (note that the specified byte-offset and length might not exactly fall on page boundaries).
+
+Further, if you reach the maximum number of frames for the requested file (i.e., nframes), you need to implement a page replacement algorithm. More specifically, your algorithm needs to determine which page(s) are the victim(s) to be replaced in your server's memory.
+
+For your page replacement algorithm, use a least-recently used (LRU) approach.
+
+If you decide to implement a multi-threaded approach, you will need to have all threads synchronized when accessing memory.
+
+If you decide to implement a multi-process approach, you will need to allocate memory via a shared memory segment and synchronize access to the shared memory.
+
+Server Storage Specifics:
+Store files on the server in a hidden directory called .storage, which your program creates, if necessary. If the directory already exists, do not overwrite it! Further, regardless of the memory management simulation below, store all files in this directory (i.e., even if some of the file data is stored/cached in memory of your running process).
+
+Output Requirements:
+Your server is required to output a line describing each command. You may also output debugging information to ensure that you've correctly implemented all of the above requirements.
+
+Required output is shown in the example bash session below (with sample input shown in bold). Note that this is sample multi-threaded output (so for multiple processes, show the process IDs instead of the thread IDs).
+
+bash-3.2$ hw4-server
+Listening on port 8765
+Received incoming connection from <client-hostname>
+[thread 134558720] Rcvd: ADD abc.txt 25842
+[thread 134558720] Transferred file (25842 bytes)
+[thread 134558720] Sent: ACK
+[thread 134558720] Client closed its socket....terminating
+Received incoming connection from <client-hostname>
+[thread 134559232] Rcvd: READ abc.txt 4888 5000
+[thread 134559232] Allocated page 4 to frame 0
+[thread 134559232] Sent: ACK 231
+[thread 134559232] Transferred 231 bytes from offset 4888
+[thread 134559232] Allocated page 5 to frame 1
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 5120
+[thread 134559232] Allocated page 6 to frame 2
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 6144
+[thread 134559232] Allocated page 7 to frame 3
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 7168
+[thread 134559232] Allocated page 8 to frame 0 (replaced page 4)
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 8192
+[thread 134559232] Allocated page 9 to frame 1 (replaced page 5)
+[thread 134559232] Sent: ACK 673
+[thread 134559232] Transferred 673 bytes from offset 9216
+[thread 134559232] Rcvd: READ xyz.jpg 5555 2000
+[thread 134559232] Sent: ERROR NO SUCH FILE
+[thread 134559232] Rcvd: DELETE abc.txt
+[thread 134559232] Deallocated frame 0
+[thread 134559232] Deallocated frame 1
+[thread 134559232] Deallocated frame 2
+[thread 134559232] Deallocated frame 3
+[thread 134559232] Deleted abc.txt file
+[thread 134559232] Sent: ACK
+[thread 134559232] Client closed its socket....terminating
+etc.
+
+Compiler:
+Use gcc or g++ to compile your C or C++ code (and specify -Wall to ensure all compiler warnings are addressed before submitting your assignment). For Java programs, use javac to compile your code and java to execute it. Your code must work on a standard installation of Ubuntu.
+
+
+David E. Goldschmidt, Ph.D.
+Garrido Text
+
+CSCI-4210-01
+CSCI-6140-01
+Mon/Thurs 2:00-3:50pm
+Sage 3510
+David E. Goldschmidt, Ph.D.
+
+Executive Officer
+Department of Computer Science
+Rensselaer Polytechnic Institute
+assignments
+
+Homeworks are to be completed individually or as specified in the assignment description. If teams are permitted, teams must not exceed three students. Note that teamwork is not required for any assignment.
+
+Unless otherwise noted, assignments are due by 11:59pm on the specified due date and are to be submitted via RPI LMS. Late assignments are penalized 20 points for being late. Late assignments may be submitted up to a maximum of 5 days (120 hours) after the deadline. Assignments cannot be accepted for credit after this 5-day grace period.
+Compilation
+
+For C programs (Homeworks #1 and #3), use gcc to compile your code and specify -Wall; all compiler warnings must be addressed (fixed) before submitting your assignment. Further, do not use any additional flags with gcc.
+
+For C++ programs, use g++ to compile your code and, as with C, specify -Wall and ensure all compiler warnings are addressed (fixed) before submitting your assignment.
+
+For Java programs, use javac to compile your code and java to execute it.
+
+For any other language, please confirm language, version, libraries, etc. with me and the TAs first.
+
+?hide contact information
+My Office: 	Lally 209
+My Office Hours: 	Mon/Thurs 12:30-1:45pm; Tues 1:00-2:50pm
+NO OFFICE HOURS 4/23
+EXTRA OFFICE HOURS 4/24 11:00AM-12:30PM
+My Email: 	goldschmidt@gmail.com
+Shigeru Imai
+TA: 	Shigeru Imai
+Office Hours: 	Tues 3:00-4:50PM (AE 119)
+Fri 1:00-2:50PM (AE 119)
+NO OFFICE HOURS 5/5-5/15
+Email: 	imais@rpi.edu
+Bo Yuan
+TA: 	Bo Yuan
+Office Hours: 	Thurs 12:00-1:50PM (AE 217)
+Thurs 6:00-7:50PM (AE 217)
+Email: 	yuanb@rpi.edu
+
+Ubuntu Required
+
+With multiple flavors of Linux available, please be sure to use Ubuntu version 14.04 LTS for homeworks. This will be the platform on which testing and grading will be performed.
+
+Ubuntu is a free download (click here for Ubuntu download site). For installations on Windows, you do not need to re-partition your hard drive.
+
+Homework #1 - Process Management and Shells in C
+
+Due 11:59PM Wednesday 3/4
+
+?show details
+Homework #2 - Process Management Simulation System
+
+Due 11:59PM Wednesday 3/18
+
+?show details
+Homework #3 - Threads in C
+
+Due 11:59PM Wednesday 4/8
+
+?show details
+Homework #4 - Sockets-based Storage Server
+
+Due 11:59PM Wednesday 5/13
+
+?hide details
+
+This assignment is to be completed individually or in teams of up to three students. Beyond your team, do not share code or review anyone else's code.
+
+Submit your homework via RPI LMS as a single compressed and zipped file (using tar and gzip); include only source code and documentation files.
+
+To package up your submission, use tar and gzip. More specifically, create a compressed tar file using your RCS userid, as in goldsd.tar.gz, that contains your source files (e.g. main.c and file2.c); include a readme.txt file only if necessary. Here's an example:
+
+bash$ tar cvf goldsd.tar main.c file2.c readme.txt
+main.c
+file2.c
+readme.txt
+bash$ gzip -9 goldsd.tar
+
+Be sure to comment your code and include all team member names in a comment at the top of each file submitted.
+
+Purpose:
+In this fourth (and final) assignment, you'll write server code to implement a storage server. You can use any language you like, as long as it compiles and runs on Ubuntu and has support for server sockets. As part of your server implementation, you will implement some fundamental memory management concepts, in particular, paging.
+
+For your server, clients connect via TCP sockets to server port 8765 (you may hard-code this port number). Your server must not be a single-threaded iterative server or a multiplexing select-based server. Your server must use either threads or child processes for its implementation.
+
+Your server must support clients implemented in any language (e.g. C, Java, Python, etc.). Though you only need to submit your server code, feel free to create one or more test clients. Test clients will not be provided to you. You should also use telnet and netcat to test your server.
+
+Application-Level Protocol:
+Clients connect to the server and can add, delete, and read files. Clients can also request a list of files available on the server. Note that both text and binary (e.g. image) files must be supported.
+
+The application-level protocol between client and server is a line-based protocol (see below). Streams of bytes (characters) are transmitted between clients and your server.
+
+Note that this protocol requires a connection-based protocol at the transport layer (i.e., TCP). Once a client is connected, your server must handle as many commands (i.e., STORE, DELETE, READ, etc.) as necessary, closing the socket connection and terminating only when it detects that the remote client side has closed its socket.
+
+The application-level protocol must be implemented exactly as shown below:
+
+Storage Server Commands:
+
+STORE <filename> <bytes>\n<file-contents>
+-- add <filename> to the storage server
+-- if the file already exists, return an "ERROR: FILE EXISTS\n" error
+-- return "ACK" if successful
+-- return "ERROR: <error-description>\n" if unsuccessful
+
+
+READ <filename> <byte-offset> <length>\n
+-- server returns <length> bytes of the content of <filename>
+   starting at <byte-offset>
+-- note that this does NOT remove the file on the server
+-- if the file does not exist, return an "ERROR: NO SUCH FILE\n" error
+-- if the file byte range is invalid, return an "ERROR: INVALID BYTE RANGE\n" error
+-- return "ACK" if successful
+-- return "ERROR: <error-description>\n" if unsuccessful
+-- note that the requested content may be returned using multiple ACK messages
+-- if "ACK" is sent, follow it with length and data, as follows:
+
+      ACK <bytes>\n<file-contents>
+
+
+DELETE <filename>\n
+-- delete file <filename> from the storage server
+-- if the file does not exist, return an "ERROR: NO SUCH FILE\n" error
+-- return "ACK" if successful
+-- return "ERROR: <error-description>\n" if unsuccessful
+
+
+DIR\n
+-- server returns the list of files currently stored on the server
+-- the list need not be in any specific order
+-- the format of the message containing the list of files is as follows:
+
+      <number-of-files>\n<filename1>\n<filename2>\netc.\n
+
+-- if no files are stored, "0\n" is returned
+
+
+Note that errors sent by the server adhere to the following format,
+ with error-description set accordingly:
+
+      ERROR: <error-description>\n
+
+Expect the client to display the error description to the user.
+
+Commands are case-sensitive and you should ensure that invalid commands received by the server do not crash the server. In general, return an "ERROR" and an error description if something is incorrect or goes wrong.
+
+To delimit messages or message fields, note the use of newline '\n' characters. This should help to determine message boundaries.
+
+Also note that subdirectories are not supported. A filename is simply a valid filename without any relative or absolute path specified. Be careful to stick to the protocol or else your server might not work with all clients (and with all tests we use for grading)!
+
+You may assume that the correct number of bytes will be sent and received by client and server (and vice versa). In practice, this is not a safe assumption, but it should simplify your implementation.
+
+Server Memory Management:
+To study memory management concepts, your server must implement a non-contiguous memory allocation scheme to store file data in your running server program. Using a virtual memory approach, each file will be assigned a fixed number of frames, paging to disk as necessary. In other words, your server will cache file data in its memory by using a non-contiguous memory allocation scheme combined with paging.
+
+First, implement a non-contiguous memory allocation scheme in your server by allocating nframes frames, where each frame is sizeframe bytes. Use default values of nframes=32 frames and sizeframe=1024 bytes, though test with other values. Given these defaults, you would allocate 32,768 bytes; you could use calloc() to do so and have an array of char of that size.
+
+Second, set the number of frames per file, nframes to a default value of 4. This is the maximum number of frames to be allocated to each file.
+
+Each file is sliced up into equally sized pages, where the page size sizepage equals sizeframe bytes. In other words, the page size is the same as the frame size.
+
+To keep track of what file data is in your server's memory, implement a page table that maps pages to frames of your server's memory. For each file stored, your server should know what pages are in memory, if any. Note that all file data is stored on disk, regardless.
+
+When a valid STORE command is received, store the file data to disk. Do not store any of the file data (i.e., pages) in your server's memory yet.
+
+When a valid READ command is received, use your page table to determine if any of the requested data is already in your server's memory. If not, use on-demand paging to retrieve the data from disk and store in memory. Send at most one frame of data back to the client at each write() call (note that the specified byte-offset and length might not exactly fall on page boundaries).
+
+Further, if you reach the maximum number of frames for the requested file (i.e., nframes), you need to implement a page replacement algorithm. More specifically, your algorithm needs to determine which page(s) are the victim(s) to be replaced in your server's memory.
+
+For your page replacement algorithm, use a least-recently used (LRU) approach.
+
+If you decide to implement a multi-threaded approach, you will need to have all threads synchronized when accessing memory.
+
+If you decide to implement a multi-process approach, you will need to allocate memory via a shared memory segment and synchronize access to the shared memory.
+
+Server Storage Specifics:
+Store files on the server in a hidden directory called .storage, which your program creates, if necessary. If the directory already exists, do not overwrite it! Further, regardless of the memory management simulation below, store all files in this directory (i.e., even if some of the file data is stored/cached in memory of your running process).
+
+Output Requirements:
+Your server is required to output a line describing each command. You may also output debugging information to ensure that you've correctly implemented all of the above requirements.
+
+Required output is shown in the example bash session below (with sample input shown in bold). Note that this is sample multi-threaded output (so for multiple processes, show the process IDs instead of the thread IDs).
+
+bash-3.2$ hw4-server
+Listening on port 8765
+Received incoming connection from <client-hostname>
+[thread 134558720] Rcvd: ADD abc.txt 25842
+[thread 134558720] Transferred file (25842 bytes)
+[thread 134558720] Sent: ACK
+[thread 134558720] Client closed its socket....terminating
+Received incoming connection from <client-hostname>
+[thread 134559232] Rcvd: READ abc.txt 4888 5000
+[thread 134559232] Allocated page 4 to frame 0
+[thread 134559232] Sent: ACK 231
+[thread 134559232] Transferred 231 bytes from offset 4888
+[thread 134559232] Allocated page 5 to frame 1
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 5120
+[thread 134559232] Allocated page 6 to frame 2
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 6144
+[thread 134559232] Allocated page 7 to frame 3
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 7168
+[thread 134559232] Allocated page 8 to frame 0 (replaced page 4)
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 8192
+[thread 134559232] Allocated page 9 to frame 1 (replaced page 5)
+[thread 134559232] Sent: ACK 673
+[thread 134559232] Transferred 673 bytes from offset 9216
+[thread 134559232] Rcvd: READ xyz.jpg 5555 2000
+[thread 134559232] Sent: ERROR NO SUCH FILE
+[thread 134559232] Rcvd: DELETE abc.txt
+[thread 134559232] Deallocated frame 0
+[thread 134559232] Deallocated frame 1
+[thread 134559232] Deallocated frame 2
+[thread 134559232] Deallocated frame 3
+[thread 134559232] Deleted abc.txt file
+[thread 134559232] Sent: ACK
+[thread 134559232] Client closed its socket....terminating
+etc.
+
+Compiler:
+Use gcc or g++ to compile your C or C++ code (and specify -Wall to ensure all compiler warnings are addressed before submitting your assignment). For Java programs, use javac to compile your code and java to execute it. Your code must work on a standard installation of Ubuntu.
