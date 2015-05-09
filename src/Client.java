@@ -39,7 +39,7 @@ public class Client extends Thread
 			while ( true )
 			{
 				// Get the command from the user
-				System.out.print( "Enter command: " );
+				System.out.print("Enter command: ");
 				String command = keyboard.nextLine();
 				
 				// Send the command to the server
@@ -53,7 +53,7 @@ public class Client extends Thread
 				long threadId = Thread.currentThread().getId();
 				
 				// Display result
-				System.out.println( "[thread " + threadId + "] Rcvd: " + result);
+				System.out.println("[thread " + threadId + "] Rcvd: " + result);
 			}
 		}
 		catch ( IOException ex )

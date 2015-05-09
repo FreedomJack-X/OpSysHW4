@@ -114,6 +114,16 @@ public class Server
 		{
 			if (splitStr.length != 1)
 				return "ERROR: format should be DIR\n";
+			
+			File folder = new File(".");
+			int numFiles = folder.listFiles().length;
+			//print number files overall
+			System.out.println(numFiles);
+			//print each file
+			for (final File fileEntry : folder.listFiles()) 
+			{
+				System.out.println(fileEntry.getName());
+			}
 		}
 						
 		// Send area back to the client
@@ -248,7 +258,7 @@ public class Server
 		}
 		else
 		{
-			System.out.println("[thread " + thread1.getId() + "] Deleted failed.");
+			System.out.println("[thread " + thread1.getId() + "] Delete failed.");
 		}
 		
 		System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
