@@ -15,7 +15,7 @@ public class Client extends Thread
 	public Client(String name)
 	{
 		threadName = name;
-		System.out.println("Creating " +  threadName );
+		//System.out.println("Creating " +  threadName );
 	}
 
 	public void run() 

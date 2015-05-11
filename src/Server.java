@@ -93,7 +93,8 @@ public class Server
 			System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 			
 			//check if file exists
-			File file = new File(splitStr[1]);
+			String destPath = "storage\\" + splitStr[1];
+			File file = new File(destPath);
 			if (!file.isFile())
 			{
 				return "Sent: ERROR NO SUCH FILE\n";
@@ -188,6 +189,20 @@ public class Server
 		int currentPage = currentByteOffset / frameSize;
 		int currentFrame = 0;
 		
+		String destPath = "storage\\" + sourcePath;
+		File currentFile = new File(destPath);
+		
+		//print error msg if byte range is invalid
+		//if byteoffset or filelength is larger than current file
+		//if byteoffset is greater than filelength (param 2 should be less than param 3)
+		if (byteOffset > currentFile.length() || 
+				fileLength > currentFile.length() ||
+				byteOffset > fileLength)
+		{
+			System.out.println("ERROR: INVALID BYTE RANGE");
+			return;
+		}
+		
 		while (bytesLeft > 0)
 		{
 			int actualFrame = currentFrame + currentFrameOffset;
@@ -217,7 +232,7 @@ public class Server
 			try 
 			{
 				//read
-				BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(sourcePath));
+				BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(destPath));
 				bufferedInput.read(bytes, currentByteOffset, numBytesSent);
 
 				//write
