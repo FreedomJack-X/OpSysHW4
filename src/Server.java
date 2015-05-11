@@ -149,7 +149,14 @@ public class Server
 		//Upload file data
 		String destPath = "storage\\" + sourcePath;
 		byte[] bytes = new byte[numBytes];
-
+		
+		File destFile = new File(destPath);
+		if (destFile.exists())
+		{
+			System.out.println("ERROR: FILE EXISTS");
+			return;
+		}
+		
 		try
 		{
 			BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(sourcePath));
