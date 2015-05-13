@@ -43,10 +43,10 @@ public class ClientTo {
 				// Get result from the server
 				String result = fromServer.readUTF(); //block
 				
-				//long threadId = Thread.currentThread().getId();
-				
+			
 				// Display result
-				System.out.println( "Rcvd: " + result);
+				long threadId = Thread.currentThread().getId();
+				System.out.println("[thread " + threadId + "] Rcvd: " + result);
 			}
 		}
 		catch ( IOException ex )
