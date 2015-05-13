@@ -57,11 +57,9 @@ public class Client extends Thread
 				long threadId = Thread.currentThread().getId();
 				
 				// Display result
-<<<<<<< Updated upstream
+
 				System.out.println("[thread " + threadId + "] Rcvd: " + result);
-=======
-				//System.out.println( "[thread " + threadId + "] Rcvd: " + result);
->>>>>>> Stashed changes
+
 			}
 		}
 		catch ( IOException ex )
