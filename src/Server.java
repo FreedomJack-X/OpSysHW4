@@ -23,7 +23,7 @@ public class Server
 		{
 			ServerSocket serverSocket = new ServerSocket(8765);
 			Socket socket;
-			
+			int clientNumber = 0;
 			//constants
 			totalFrames = 32;
 			currentFrameOffset = 0; //start at frame 0
@@ -33,30 +33,17 @@ public class Server
 			memory = new byte[totalFrames][];
 			
 			while ( true )
-			{
-				//create new client
-				Client thread1 = new Client("Thread-1");
-			    thread1.start();
-				
+			{			
 				// Listen for a connection request
 				socket = serverSocket.accept();   // BLOCK
 				
-				// Create data input and output streams for primitive data types
-				DataInputStream inputFromClient = new DataInputStream(socket.getInputStream());
-				DataOutputStream outputToClient = new DataOutputStream(socket.getOutputStream());
-
-				// below is the application-level protocol
-				String command = inputFromClient.readUTF(); // BLOCK
+				// Create a new thread for the connection
+		        HandleAClient thread = new HandleAClient( socket );
+		        thread.start();
 				
-				String error = runCommand(thread1, command);
-				if (!error.equals(""))
-				{
-					outputToClient.writeUTF(error);
-					break;
-				}
 			}
 			
-			socket.close();
+			//socket.close();
 		}
 		catch( IOException ex )
 		{
@@ -291,5 +278,52 @@ public class Server
 		}
 		
 		System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
+	}
+	
+	public void listFileFromServer()
+	{
+		
+	}
+	
+	// Inner class
+	// Define the thread class for handling incoming connection
+	class HandleAClient extends Thread
+	{
+		private Socket socket; // A connected socket
+
+		public HandleAClient( Socket socket )
+		{
+			this.socket = socket;
+		}
+
+		public void run()
+		{
+			try {
+				// Create data input and output streams
+				DataInputStream inputFromClient =
+						new DataInputStream( socket.getInputStream() );
+				DataOutputStream outputToClient =
+						new DataOutputStream( socket.getOutputStream() );
+
+				// Continuously serve the client
+				while ( true )
+				{
+					// below is the application-level protocol
+					String command = inputFromClient.readUTF(); // BLOCK
+					
+					String error = runCommand(this, command);
+					if (!error.equals(""))
+					{
+						outputToClient.writeUTF(error);
+						break;
+					}
+				}
+				socket.close();
+			}
+			catch( IOException ex ) {
+				System.err.println( ex );
+			}
+			
+		}
 	}
 }

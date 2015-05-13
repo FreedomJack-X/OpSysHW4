@@ -2,48 +2,37 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-// Define a thread class for handling the incoming connection
-public class Client extends Thread
-{
-	private Thread t;
-	private String threadName;
-	   
-	// IO streams
+public class ClientTo {
 	private DataOutputStream toServer;
 	private DataInputStream fromServer;
-
-	public Client(String name)
+	public static void main( String[] args )
 	{
-		threadName = name;
-		//System.out.println("Creating " +  threadName );
+		new ClientTo();
 	}
 
-	public void run() 
+	public ClientTo()
 	{
 		Scanner keyboard = new Scanner( System.in );
 
 		try
 		{
 			// Create a socket to connect to the server
-			Socket socket = new Socket("localhost", 8765);
+			Socket socket = new Socket( "localhost", 8765 );
 
 			// Create an input stream to receive data from the server
 			fromServer = new DataInputStream( socket.getInputStream() );
 
-			//BufferedInputStream fromServer1 = new BufferedInputStream(fromServer);
-					
+
 			// Create an output stream to send data to the server
 			toServer = new DataOutputStream( socket.getOutputStream() );
-			
-			//BufferedOutputStream toServer1 = new BufferedOutputStream(toServer);
-			
+
 			System.out.println("Listening on port " + socket.getPort());
 			System.out.println("Received incoming connection from " + socket.getInetAddress().getCanonicalHostName());
 
 			while ( true )
 			{
 				// Get the command from the user
-				System.out.print("Enter command: ");
+				System.out.print( "Enter command: " );
 				String command = keyboard.nextLine();
 				
 				// Send the command to the server
@@ -54,29 +43,15 @@ public class Client extends Thread
 				// Get result from the server
 				String result = fromServer.readUTF(); //block
 				
-				long threadId = Thread.currentThread().getId();
+				//long threadId = Thread.currentThread().getId();
 				
 				// Display result
-<<<<<<< Updated upstream
-				System.out.println("[thread " + threadId + "] Rcvd: " + result);
-=======
-				//System.out.println( "[thread " + threadId + "] Rcvd: " + result);
->>>>>>> Stashed changes
+				System.out.println( "Rcvd: " + result);
 			}
 		}
 		catch ( IOException ex )
 		{
 			System.err.println( ex );
-		}
-	}
-	
-	public void start ()
-	{
-		//System.out.println("Starting thread");
-		if (t == null)
-		{
-			t = new Thread (this, threadName);
-			t.start ();
 		}
 	}
 }
