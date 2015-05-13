@@ -36,7 +36,7 @@ public class Server
 			{			
 				// Listen for a connection request
 				socket = serverSocket.accept();   // BLOCK
-				
+				System.out.println("Received incoming connection from "+socket.getInetAddress().getHostName());
 				// Create a new thread for the connection
 		        HandleAClient thread = new HandleAClient( socket );
 		        thread.start();
@@ -60,7 +60,7 @@ public class Server
 		System.out.println("First word is : " + firstWord);
 		
 		//ADD <filename> <bytes>\n
-		if (firstWord.equals("ADD"))
+		if (firstWord.equals("STORE"))
 		{
 			if (splitStr.length != 3)
 			{
@@ -80,7 +80,7 @@ public class Server
 			System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 			
 			//check if file exists
-			String destPath = "storage\\" + splitStr[1];
+			String destPath = "storage/" + splitStr[1];
 			File file = new File(destPath);
 			if (!file.isFile())
 			{
@@ -132,10 +132,10 @@ public class Server
 		System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 		System.out.println("[thread " + thread1.getId() + "] Transferred file (" + numBytes + " bytes)");
 		System.out.println("[thread " + thread1.getId() + "] Sent: ACK");
-		System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
+		//System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
 		
 		//Upload file data
-		String destPath = "storage\\" + sourcePath;
+		String destPath = "storage/" + sourcePath;
 		byte[] bytes = new byte[numBytes];
 		
 		File destFile = new File(destPath);
@@ -176,7 +176,7 @@ public class Server
 		int currentPage = currentByteOffset / frameSize;
 		int currentFrame = 0;
 		
-		String destPath = "storage\\" + sourcePath;
+		String destPath = "storage/" + sourcePath;
 		File currentFile = new File(destPath);
 		
 		//print error msg if byte range is invalid
@@ -277,7 +277,7 @@ public class Server
 			System.out.println("[thread " + thread1.getId() + "] Delete failed.");
 		}
 		
-		System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
+		//System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
 	}
 	
 	public void listFileFromServer()
@@ -321,7 +321,7 @@ public class Server
 				socket.close();
 			}
 			catch( IOException ex ) {
-				System.err.println( ex );
+				System.err.println( "[thread " + this.getId() + "] Client closed its socket....terminating" );
 			}
 			
 		}
