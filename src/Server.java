@@ -58,9 +58,17 @@ public class Server
 		String[] splitStr = command.split(" ");
 		String firstWord = splitStr[0];
 		//System.out.println("First word is : " + firstWord);
-		
-		//ADD <filename> <bytes>\n
-		if (firstWord.equals("STORE"))
+			
+		//check if the storage directory exists
+		File theDir = new File("storage");
+		// if the directory does not exist, create it
+		if (!theDir.exists())
+		{
+			theDir.mkdir();
+		}
+
+		//ADD <filename> <bytes>
+		if (firstWord.equals("ADD") || firstWord.equals("STORE"))
 		{
 			if (splitStr.length != 3)
 			{

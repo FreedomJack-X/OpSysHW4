@@ -43,7 +43,6 @@ public class ClientTo {
 				// Get result from the server
 				String result = fromServer.readUTF(); //block
 				
-			
 				// Display result
 				long threadId = Thread.currentThread().getId();
 				System.out.println("[thread " + threadId + "] Rcvd: " + result);
