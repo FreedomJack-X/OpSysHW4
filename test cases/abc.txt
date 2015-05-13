@@ -176,3 +176,55 @@ Further, if you reach the maximum number of frames for the requested file (i.e.,
 For your page replacement algorithm, use a least-recently used (LRU) approach.
 
 If you decide to implement a multi-threaded approach, you will need to have all threads synchronized when accessing memory.
+
+If you decide to implement a multi-process approach, you will need to allocate memory via a shared memory segment and synchronize access to the shared memory.
+
+Server Storage Specifics:
+Store files on the server in a hidden directory called .storage, which your program creates, if necessary. If the directory already exists, do not overwrite it! Further, regardless of the memory management simulation below, store all files in this directory (i.e., even if some of the file data is stored/cached in memory of your running process).
+
+Output Requirements:
+Your server is required to output a line describing each command. You may also output debugging information to ensure that you've correctly implemented all of the above requirements.
+
+Required output is shown in the example bash session below (with sample input shown in bold). Note that this is sample multi-threaded output (so for multiple processes, show the process IDs instead of the thread IDs).
+
+bash-3.2$ hw4-server
+Listening on port 8765
+Received incoming connection from <client-hostname>
+[thread 134558720] Rcvd: ADD abc.txt 25842
+[thread 134558720] Transferred file (25842 bytes)
+[thread 134558720] Sent: ACK
+[thread 134558720] Client closed its socket....terminating
+Received incoming connection from <client-hostname>
+[thread 134559232] Rcvd: READ abc.txt 4888 5000
+[thread 134559232] Allocated page 4 to frame 0
+[thread 134559232] Sent: ACK 231
+[thread 134559232] Transferred 231 bytes from offset 4888
+[thread 134559232] Allocated page 5 to frame 1
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 5120
+[thread 134559232] Allocated page 6 to frame 2
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 6144
+[thread 134559232] Allocated page 7 to frame 3
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 7168
+[thread 134559232] Allocated page 8 to frame 0 (replaced page 4)
+[thread 134559232] Sent: ACK 1024
+[thread 134559232] Transferred 1024 bytes from offset 8192
+[thread 134559232] Allocated page 9 to frame 1 (replaced page 5)
+[thread 134559232] Sent: ACK 673
+[thread 134559232] Transferred 673 bytes from offset 9216
+[thread 134559232] Rcvd: READ xyz.jpg 5555 2000
+[thread 134559232] Sent: ERROR NO SUCH FILE
+[thread 134559232] Rcvd: DELETE abc.txt
+[thread 134559232] Deallocated frame 0
+[thread 134559232] Deallocated frame 1
+[thread 134559232] Deallocated frame 2
+[thread 134559232] Deallocated frame 3
+[thread 134559232] Deleted abc.txt file
+[thread 134559232] Sent: ACK
+[thread 134559232] Client closed its socket....terminating
+etc.
+
+Compiler:
+Use gcc or g++ to compile your C or C++ code (and specify -Wall to ensure all compiler warnings are addressed before submitting your assignment). For Java programs, use javac to compile your code and java to execute it. Your code must work on a standard installation of Ubuntu.

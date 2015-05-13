@@ -57,7 +57,7 @@ public class Server
 	{
 		String[] splitStr = command.split(" ");
 		String firstWord = splitStr[0];
-		System.out.println("First word is : " + firstWord);
+		//System.out.println("First word is : " + firstWord);
 		
 		//ADD <filename> <bytes>\n
 		if (firstWord.equals("ADD"))
@@ -65,6 +65,22 @@ public class Server
 			if (splitStr.length != 3)
 			{
 				return "ERROR: format should be ADD <filename> <bytes>\n";
+			}
+			
+			//check if file exists on local disk
+			String sourcePath = splitStr[1];
+			File sourceFile = new File(sourcePath);
+			if (!sourceFile.exists())
+			{
+				return "ERROR: FILE DOESN'T EXIST";
+			}
+			
+			//check if file has already been uploaded
+			String destPath = "storage\\" + sourcePath;
+			File destFile = new File(destPath);
+			if (destFile.exists())
+			{
+				return "ERROR: FILE EXISTS";
 			}
 			
 			addFileToServer(thread1, command);
@@ -105,15 +121,7 @@ public class Server
 			if (splitStr.length != 1)
 				return "ERROR: format should be DIR\n";
 			
-			File folder = new File(".");
-			int numFiles = folder.listFiles().length;
-			//print number files overall
-			System.out.println(numFiles);
-			//print each file
-			for (final File fileEntry : folder.listFiles()) 
-			{
-				System.out.println(fileEntry.getName());
-			}
+			listFileFromServer(thread1, command);
 		}
 						
 		// Send area back to the client
@@ -122,7 +130,7 @@ public class Server
 		return ""; //no error message
 	}
 	
-	public void addFileToServer(Thread thread1, String command)
+	public synchronized void addFileToServer(Thread thread1, String command)
 	{
 		//parameters
 		String[] splitStr = command.split(" ");
@@ -137,13 +145,6 @@ public class Server
 		//Upload file data
 		String destPath = "storage\\" + sourcePath;
 		byte[] bytes = new byte[numBytes];
-		
-		File destFile = new File(destPath);
-		if (destFile.exists())
-		{
-			System.out.println("ERROR: FILE EXISTS");
-			return;
-		}
 		
 		try
 		{
@@ -163,7 +164,7 @@ public class Server
 		}
 	}
 	
-	public void readFileOnServer(Thread thread1, String command)
+	public synchronized void readFileOnServer(Thread thread1, String command)
 	{
 		//parameters
 		String[] splitStr = command.split(" ");
@@ -247,7 +248,7 @@ public class Server
 		currentFrameOffset %= totalFrames; //make sure offset doesn't exceed max number frames in memory (32)
 	}
 	
-	public void deleteFileFromServer(Thread thread1, String command)
+	public synchronized void deleteFileFromServer(Thread thread1, String command)
 	{
 		//parameters
 		String[] splitStr = command.split(" ");
@@ -280,9 +281,19 @@ public class Server
 		System.out.println("[thread " + thread1.getId() + "] Client closed its socket....terminating");
 	}
 	
-	public void listFileFromServer()
+	public void listFileFromServer(Thread thread1, String command)
 	{
+		System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 		
+		File folder = new File(".");
+		int numFiles = folder.listFiles().length;
+		//print number files overall
+		System.out.println(numFiles);
+		//print each file
+		for (final File fileEntry : folder.listFiles()) 
+		{
+			System.out.println(fileEntry.getName());
+		}
 	}
 	
 	// Inner class
@@ -300,10 +311,8 @@ public class Server
 		{
 			try {
 				// Create data input and output streams
-				DataInputStream inputFromClient =
-						new DataInputStream( socket.getInputStream() );
-				DataOutputStream outputToClient =
-						new DataOutputStream( socket.getOutputStream() );
+				DataInputStream inputFromClient = new DataInputStream( socket.getInputStream() );
+				DataOutputStream outputToClient = new DataOutputStream( socket.getOutputStream() );
 
 				// Continuously serve the client
 				while ( true )

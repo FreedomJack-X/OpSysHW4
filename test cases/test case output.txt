@@ -1,0 +1,50 @@
+Multithreaded Server started at Wed May 13 16:37:07 EDT 2015
+[thread 9] Rcvd: ADD abc.txt 10000
+[thread 9] Transferred file (10000 bytes)
+[thread 9] Sent: ACK
+[thread 9] Client closed its socket....terminating
+[thread 10] Rcvd: READ abc.txt 4888 5000
+[thread 10] Allocated page 4 to frame 0
+[thread 10] Sent: ACK 232
+[thread 10] Transferred 232 bytes from offset 4888
+[thread 10] Allocated page 5 to frame 1
+[thread 10] Sent: ACK 1024
+[thread 10] Transferred 1024 bytes from offset 5120
+[thread 10] Allocated page 6 to frame 2
+[thread 10] Sent: ACK 1024
+[thread 10] Transferred 1024 bytes from offset 6144
+[thread 10] Allocated page 7 to frame 3
+[thread 10] Sent: ACK 1024
+[thread 10] Transferred 1024 bytes from offset 7168
+[thread 10] Allocated page 8 to frame 0 (replaced page 4)
+[thread 10] Sent: ACK 1024
+[thread 10] Transferred 1024 bytes from offset 8192
+[thread 10] Allocated page 9 to frame 1 (replaced page 5)
+[thread 10] Sent: ACK 1024
+[thread 10] Transferred 1024 bytes from offset 9216
+[thread 11] Rcvd: READ abc.txt 1000 500
+ERROR: INVALID BYTE RANGE
+[thread 12] Rcvd: READ abc.txt 10 1000000000
+ERROR: INVALID BYTE RANGE
+[thread 13] Rcvd: DIR
+12
+.classpath
+.git
+.gitignore
+.project
+abc.txt
+bin
+README.md
+src
+storage
+test case input.txt
+test case output.txt
+xyz.txt
+[thread 14] Rcvd: DELETE abc.txt
+[thread 14] Deallocated frame 0
+[thread 14] Deallocated frame 1
+[thread 14] Deallocated frame 2
+[thread 14] Deallocated frame 3
+[thread 14] Deleted abc.txt file
+[thread 14] Sent: ACK
+[thread 14] Client closed its socket....terminating
