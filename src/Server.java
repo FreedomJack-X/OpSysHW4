@@ -197,15 +197,13 @@ public class Server
 				break;
 			}
 		}
-		
 		String destPath = "storage/" + sourcePath;
 		File currentFile = new File(destPath);
 		
 		//print error msg if byte range is invalid
 		//if byteoffset or filelength is larger than current file
 		//if byteoffset is greater than filelength (param 2 should be less than param 3)
-		if (byteOffset < 0 || (byteOffset+fileLength) > currentFile.length() || fileLength < 0 
-				|| byteOffset > fileLength)
+		if (byteOffset < 0 || (byteOffset+fileLength) > currentFile.length() || fileLength < 0)
 		{
 			System.out.println("ERROR: INVALID BYTE RANGE");
 			return;
@@ -252,8 +250,7 @@ public class Server
 				//read
 				BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(destPath));
 				bufferedInput.read(bytes, currentByteOffset, numBytesSent);
-				bufferedInput.close();
-				
+
 				//write
 				for (int i = currentByteOffset; i < currentByteOffset + numBytesSent; i++)
 				{

@@ -22,6 +22,7 @@ public class ClientTo {
 			// Create an input stream to receive data from the server
 			fromServer = new DataInputStream( socket.getInputStream() );
 
+
 			// Create an output stream to send data to the server
 			toServer = new DataOutputStream( socket.getOutputStream() );
 
