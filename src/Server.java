@@ -9,8 +9,8 @@ public class Server
 	private int frameSize;
 	private int fileFrames;
 	private byte[][] memory;
-	private Map<Integer, Integer> pageTable;
-	private Map<Integer, String> frameFile;
+	private Map<Integer, Integer> pageTable; //frame and page assocation
+	private Map<Integer, String> frameFile;	 //frame and file names
 	
 	public static void main( String[] args )
 	{
@@ -210,6 +210,7 @@ public class Server
 				if(!frameFile.containsKey(i))
 				{
 					actualFrame = i;
+					break;
 				}
 			}
 			if(actualFrame < 0)
