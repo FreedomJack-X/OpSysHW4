@@ -5,10 +5,12 @@ import java.util.*;
 public class Server
 {
 	private int totalFrames;
-	private int currentFrameOffset;
+	//private int currentFrameOffset;
 	private int frameSize;
 	private int fileFrames;
 	private byte[][] memory;
+	private Map<Integer, Integer> pageTable;
+	private Map<Integer, String> frameFile;
 	
 	public static void main( String[] args )
 	{
@@ -26,11 +28,13 @@ public class Server
 			int clientNumber = 0;
 			//constants
 			totalFrames = 32;
-			currentFrameOffset = 0; //start at frame 0
+			//currentFrameOffset = 0; //start at frame 0
 			frameSize = 1024;
 			fileFrames = 4;
 			//create block of memory
 			memory = new byte[totalFrames][];
+			pageTable = new HashMap<Integer, Integer>();
+			frameFile = new HashMap<Integer, String>();
 			
 			while ( true )
 			{			
@@ -80,7 +84,7 @@ public class Server
 			File sourceFile = new File(sourcePath);
 			if (!sourceFile.exists())
 			{
-				return "ERROR: FILE DOESN'T EXIST";
+				return "ERROR: FILE DOESN'T EXIST\n";
 			}
 			
 			//check if file has already been uploaded
@@ -88,10 +92,11 @@ public class Server
 			File destFile = new File(destPath);
 			if (destFile.exists())
 			{
-				return "ERROR: FILE EXISTS";
+				return "ERROR: FILE EXISTS\n";
 			}
 			
 			addFileToServer(thread1, command);
+			//return "ACK\n";
 		}
 		//READ <filename> <byte-offset> <length>\n
 		else if (firstWord.equals("READ"))
@@ -191,9 +196,7 @@ public class Server
 		//print error msg if byte range is invalid
 		//if byteoffset or filelength is larger than current file
 		//if byteoffset is greater than filelength (param 2 should be less than param 3)
-		if (byteOffset > currentFile.length() || 
-				fileLength > currentFile.length() ||
-				byteOffset > fileLength)
+		if (byteOffset < 0 || (byteOffset+fileLength) > currentFile.length() || fileLength < 0)
 		{
 			System.out.println("ERROR: INVALID BYTE RANGE");
 			return;
@@ -201,11 +204,23 @@ public class Server
 		
 		while (bytesLeft > 0)
 		{
-			int actualFrame = currentFrame + currentFrameOffset;
-			
+			int actualFrame = Integer.MIN_VALUE;// = currentFrame + currentFrameOffset;
+			for(int i = 0; i < totalFrames; i++)
+			{
+				if(!frameFile.containsKey(i))
+				{
+					actualFrame = i;
+				}
+			}
+			if(actualFrame < 0)
+			{
+				
+			}
 			if (memory[actualFrame] == null)
 			{
 				memory[actualFrame] = new byte[frameSize];
+				frameFile.put(actualFrame, sourcePath);
+				pageTable.put(actualFrame, currentPage);
 				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
 					" to frame " + actualFrame);
 			}
@@ -213,11 +228,19 @@ public class Server
 			{
 				memory[actualFrame] = new byte[frameSize];
 				int oldPage = currentPage - fileFrames;
+				pageTable.put(actualFrame, currentPage);
 				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
 						" to frame " + actualFrame + " (replaced page " + oldPage + ")");
 			}
-			
-			int numBytesSent = (currentPage + 1) * frameSize - currentByteOffset;
+			int numBytesSent;
+			if(bytesLeft > frameSize)
+			{
+				numBytesSent = (currentPage + 1) * frameSize - currentByteOffset;
+			}
+			else
+			{
+				numBytesSent = bytesLeft;
+			}
 			System.out.println("[thread " + thread1.getId() + "] Sent: ACK " + numBytesSent);
 			System.out.println("[thread " + thread1.getId() + "] Transferred " + numBytesSent + " bytes " +
 					"from offset " + currentByteOffset);
@@ -252,8 +275,8 @@ public class Server
 			}
 		}
 		
-		currentFrameOffset += fileFrames; //move to the next file block in memory
-		currentFrameOffset %= totalFrames; //make sure offset doesn't exceed max number frames in memory (32)
+		//currentFrameOffset += fileFrames; //move to the next file block in memory
+		//currentFrameOffset %= totalFrames; //make sure offset doesn't exceed max number frames in memory (32)
 	}
 	
 	public synchronized void deleteFileFromServer(Thread thread1, String command)
@@ -265,15 +288,19 @@ public class Server
 		System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 		for (int i = 0; i < totalFrames; i++)
 		{
-			if (memory[i] != null)
+			if(frameFile.containsKey(i))
 			{
-				memory[i] = null;
-				System.out.println("[thread " + thread1.getId() + "] Deallocated frame " + i);
+				if(frameFile.get(i).equals(sourcePath))
+				{
+					memory[i] = null;
+					frameFile.remove(i);
+					System.out.println("[thread " + thread1.getId() + "] Deallocated frame " + i);
+				}
 			}
 		}
 
 		//delete file data
-		String destPath = "storage\\" + sourcePath;
+		String destPath = "storage/" + sourcePath;
 		File file = new File(destPath);
 		 
 		if(file.delete())
@@ -293,7 +320,7 @@ public class Server
 	{
 		System.out.println("[thread " + thread1.getId() + "] Rcvd: " + command);
 		
-		File folder = new File(".");
+		File folder = new File("storage/");
 		int numFiles = folder.listFiles().length;
 		//print number files overall
 		System.out.println(numFiles);
@@ -329,7 +356,15 @@ public class Server
 					String command = inputFromClient.readUTF(); // BLOCK
 					
 					String error = runCommand(this, command);
-					if (!error.equals(""))
+					if (error.equals(""))
+					{
+						outputToClient.writeUTF(error);
+					}
+					else if(error.equals("ACK"))
+					{
+						outputToClient.writeUTF(error);
+					}
+					else
 					{
 						outputToClient.writeUTF(error);
 						break;
