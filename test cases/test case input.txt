@@ -1,6 +1,5 @@
 ADD abc.txt 10000 		//test add command
 READ abc.txt 4888 5000 		//test read command
-READ abc.txt 1000 500 		//test invalid byte range (left bigger than right)
 READ abc.txt 10 1000000000 	//test invalid byte range  (right number is too large)
 DIR 				//test show directory
 DELETE abc.txt 			//test delete

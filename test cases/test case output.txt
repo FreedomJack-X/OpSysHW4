@@ -1,8 +1,9 @@
-Multithreaded Server started at Wed May 13 16:37:07 EDT 2015
-[thread 9] Rcvd: ADD abc.txt 10000
-[thread 9] Transferred file (10000 bytes)
-[thread 9] Sent: ACK
-[thread 9] Client closed its socket....terminating
+Multithreaded Server started at Wed May 13 23:21:23 EDT 2015
+Received incoming connection from 127.0.0.1
+Received incoming connection from 127.0.0.1
+[thread 10] Rcvd: ADD abc.txt 10000
+[thread 10] Transferred file (10000 bytes)
+[thread 10] Sent: ACK
 [thread 10] Rcvd: READ abc.txt 4888 5000
 [thread 10] Allocated page 4 to frame 0
 [thread 10] Sent: ACK 232
@@ -20,21 +21,20 @@ Multithreaded Server started at Wed May 13 16:37:07 EDT 2015
 [thread 10] Sent: ACK 1024
 [thread 10] Transferred 1024 bytes from offset 8192
 [thread 10] Allocated page 9 to frame 1 (replaced page 5)
-[thread 10] Sent: ACK 1024
-[thread 10] Transferred 1024 bytes from offset 9216
-[thread 11] Rcvd: READ abc.txt 1000 500
+[thread 10] Sent: ACK 672
+[thread 10] Transferred 672 bytes from offset 9216
+[thread 10] Rcvd: READ abc.txt 10 1000000000
 ERROR: INVALID BYTE RANGE
-[thread 12] Rcvd: READ abc.txt 10 1000000000
-ERROR: INVALID BYTE RANGE
-[thread 13] Rcvd: DIR
+Received incoming connection from 127.0.0.1
+[thread 11] Rcvd: DIR
 2
 abc.txt
 xyz.txt
-[thread 14] Rcvd: DELETE abc.txt
-[thread 14] Deallocated frame 0
-[thread 14] Deallocated frame 1
-[thread 14] Deallocated frame 2
-[thread 14] Deallocated frame 3
-[thread 14] Deleted abc.txt file
-[thread 14] Sent: ACK
-[thread 14] Client closed its socket....terminating
+[thread 11] Rcvd: DELETE abc.txt
+[thread 11] Deallocated frame 0
+[thread 11] Deallocated frame 1
+[thread 11] Deallocated frame 2
+[thread 11] Deallocated frame 3
+[thread 11] Deleted abc.txt file
+[thread 11] Sent: ACK
+[thread 11] Client closed its socket....terminating
