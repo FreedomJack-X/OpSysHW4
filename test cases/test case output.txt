@@ -27,18 +27,8 @@ ERROR: INVALID BYTE RANGE
 [thread 12] Rcvd: READ abc.txt 10 1000000000
 ERROR: INVALID BYTE RANGE
 [thread 13] Rcvd: DIR
-12
-.classpath
-.git
-.gitignore
-.project
+2
 abc.txt
-bin
-README.md
-src
-storage
-test case input.txt
-test case output.txt
 xyz.txt
 [thread 14] Rcvd: DELETE abc.txt
 [thread 14] Deallocated frame 0
