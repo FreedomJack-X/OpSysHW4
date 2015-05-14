@@ -26,7 +26,7 @@ For Java programs, use javac to compile your code and java to execute it.
 
 For any other language, please confirm language, version, libraries, etc. with me and the TAs first.
 
-?hide contact information
+« hide contact information
 My Office: 	Lally 209
 My Office Hours: 	Mon/Thurs 12:30-1:45pm; Tues 1:00-2:50pm
 NO OFFICE HOURS 4/23
@@ -54,22 +54,22 @@ Homework #1 - Process Management and Shells in C
 
 Due 11:59PM Wednesday 3/4
 
-?show details
+» show details
 Homework #2 - Process Management Simulation System
 
 Due 11:59PM Wednesday 3/18
 
-?show details
+» show details
 Homework #3 - Threads in C
 
 Due 11:59PM Wednesday 4/8
 
-?show details
+» show details
 Homework #4 - Sockets-based Storage Server
 
 Due 11:59PM Wednesday 5/13
 
-?hide details
+« hide details
 
 This assignment is to be completed individually or in teams of up to three students. Beyond your team, do not share code or review anyone else's code.
 
@@ -176,5 +176,3 @@ Further, if you reach the maximum number of frames for the requested file (i.e.,
 For your page replacement algorithm, use a least-recently used (LRU) approach.
 
 If you decide to implement a multi-threaded approach, you will need to have all threads synchronized when accessing memory.
-
-I
