@@ -11,6 +11,9 @@ public class Server
 	private byte[][] memory;
 	private Map<Integer, Integer> pageTable; //frame and page assocation
 	private Map<Integer, String> frameFile;	 //frame and file names
+	private Map<String, Integer> fileFrame;
+	private Map<Integer, Integer> frameRank;
+	//private 
 	
 	public static void main( String[] args )
 	{
@@ -35,7 +38,8 @@ public class Server
 			memory = new byte[totalFrames][];
 			pageTable = new HashMap<Integer, Integer>();
 			frameFile = new HashMap<Integer, String>();
-			
+			fileFrame = new HashMap<String, Integer>();
+			frameRank = new HashMap<Integer, Integer>();
 			while ( true )
 			{			
 				// Listen for a connection request
@@ -189,12 +193,26 @@ public class Server
 		int currentByteOffset = byteOffset;
 		int currentPage = currentByteOffset / frameSize;
 		int currentFrame = 0;
-		for(int i = 0; i < totalFrames; i++)
+		
+		// if the file exist in frame
+		if(fileFrame.containsKey(sourcePath))
 		{
-			if(!frameFile.containsKey(i))
+			currentFrame = fileFrame.get(sourcePath);
+		}
+		else{
+			// if not, find free frame space assign to file
+			for(int i = 0; i < totalFrames; i++)
 			{
-				currentFrame = i;
-				break;
+				if(!frameFile.containsKey(i))
+				{
+					currentFrame = i;
+					fileFrame.put(sourcePath, i);
+					frameRank.put(i, 1);
+					frameRank.put(i+1, 2);
+					frameRank.put(i+2, 3);
+					frameRank.put(i+3, 4);
+					break;
+				}
 			}
 		}
 		String destPath = "storage/" + sourcePath;
@@ -208,27 +226,87 @@ public class Server
 			System.out.println("ERROR: INVALID BYTE RANGE");
 			return;
 		}
-		
+		int actualFrame = currentFrame;
 		while (bytesLeft > 0)
 		{
-			int actualFrame = currentFrame;
-			
-			if (memory[actualFrame] == null)
+			boolean inMemory = false;
+			int standard = 5;
+			// find  if the page need to assign already in memory
+			for(int k=0; k<4; k++)
 			{
-				memory[actualFrame] = new byte[frameSize];
-				frameFile.put(actualFrame, sourcePath);
-				pageTable.put(actualFrame, currentPage);
-				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
-					" to frame " + actualFrame);
+				// check if the frame-page association already in pageTable
+				if(pageTable.containsKey(actualFrame+k))
+				{
+					// check the if the currentPage equal to the page associate with frame
+					if(currentPage == pageTable.get(actualFrame+k))
+					{
+						// check if the memory in frame is in full size
+						int count = 0;
+						for(int u = 0; u < frameSize; u++)
+						{
+							if(memory[actualFrame+k][u]!=0)
+							{
+								count++;
+							}
+						}
+						if(count == frameSize)
+						{
+							// assign the page information to result
+							byte[] result = memory[actualFrame+k];
+							for(int g = 0; g < 4; g++)
+							{
+								if(g==k)
+								{
+									frameRank.put(actualFrame+g,4);
+								}
+								else
+								{
+									frameRank.put(actualFrame+g,frameRank.get(actualFrame+g)-1);
+								}
+							}
+							inMemory = true;
+							currentFrame = actualFrame + k;
+							break;
+						}
+					}
+				}
+			}
+			if(!inMemory)
+			{
+				// find smallest rank frame will be replaced
+				for(int p=0; p<4; p++)
+				{
+					if(frameRank.get(actualFrame + p) < standard)
+					{
+						standard = frameRank.get(actualFrame + p);
+						currentFrame = actualFrame + p;
+					}
+				}
+				if (memory[currentFrame] == null)
+				{
+					memory[currentFrame] = new byte[frameSize];
+					frameFile.put(currentFrame, sourcePath);
+					pageTable.put(currentFrame, currentPage);
+					System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
+						" to frame " + currentFrame);
+				}
+				else
+				{
+					memory[currentFrame] = new byte[frameSize];
+					int oldPage = pageTable.get(currentFrame);
+					pageTable.put(currentFrame, currentPage);
+					System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
+							" to frame " + currentFrame + " (replaced page " + oldPage + ")");
+				}
 			}
 			else
 			{
-				memory[actualFrame] = new byte[frameSize];
-				int oldPage = currentPage - fileFrames;
-				pageTable.put(actualFrame, currentPage);
+				int oldPage = pageTable.get(currentFrame);
 				System.out.println("[thread " + thread1.getId() + "] Allocated page " + currentPage + 
-						" to frame " + actualFrame + " (replaced page " + oldPage + ")");
+						" to frame " + currentFrame + " (Same as " + oldPage + ")");
 			}
+			
+			
 			int numBytesSent;
 			if(bytesLeft > frameSize)
 			{
@@ -244,32 +322,45 @@ public class Server
 			
 			//save file data to memory
 			byte[] bytes = new byte[totalFrames * frameSize];
-			
-			try 
+			if(!inMemory)
 			{
-				//read
-				BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(destPath));
-				bufferedInput.read(bytes, currentByteOffset, numBytesSent);
-
-				//write
-				for (int i = currentByteOffset; i < currentByteOffset + numBytesSent; i++)
+				for(int g = 0; g < 4; g++)
 				{
-					memory[actualFrame][i % frameSize] = bytes[i];
+					if(g==currentFrame)
+					{
+						frameRank.put(actualFrame+g,4);
+					}
+					else
+					{
+						frameRank.put(actualFrame+g,frameRank.get(actualFrame+g)-1);
+					}
 				}
+				try 
+				{
+					//read
+					BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(destPath));
+					bufferedInput.read(bytes, currentByteOffset, numBytesSent);
 
-				bufferedInput.close();
+					//write
+					for (int i = currentByteOffset; i < currentByteOffset + numBytesSent; i++)
+					{
+						memory[currentFrame][i % frameSize] = bytes[i];
+					}
 
-				//increment counters
-				currentPage++;
-				currentFrame++;
-				currentFrame %= fileFrames;
-				currentByteOffset += numBytesSent;
-				bytesLeft -= numBytesSent;
+					bufferedInput.close();
+
+				}
+				catch (IOException ex)
+				{
+					System.err.println(ex);
+				}
 			}
-			catch (IOException ex)
-			{
-				System.err.println(ex);
-			}
+			//increment counters
+			currentPage++;
+			//currentFrame++;
+			//currentFrame %= fileFrames;
+			currentByteOffset += numBytesSent;
+			bytesLeft -= numBytesSent;
 		}
 		
 		//currentFrameOffset += fileFrames; //move to the next file block in memory
@@ -294,6 +385,10 @@ public class Server
 					System.out.println("[thread " + thread1.getId() + "] Deallocated frame " + i);
 				}
 			}
+		}
+		if(fileFrame.containsKey(sourcePath))
+		{
+			fileFrame.remove(sourcePath);
 		}
 
 		//delete file data
