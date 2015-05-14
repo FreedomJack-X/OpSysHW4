@@ -189,7 +189,14 @@ public class Server
 		int currentByteOffset = byteOffset;
 		int currentPage = currentByteOffset / frameSize;
 		int currentFrame = 0;
-		
+		for(int i = 0; i < totalFrames; i++)
+		{
+			if(!frameFile.containsKey(i))
+			{
+				currentFrame = i;
+				break;
+			}
+		}
 		String destPath = "storage/" + sourcePath;
 		File currentFile = new File(destPath);
 		
@@ -204,19 +211,8 @@ public class Server
 		
 		while (bytesLeft > 0)
 		{
-			int actualFrame = Integer.MIN_VALUE;// = currentFrame + currentFrameOffset;
-			for(int i = 0; i < totalFrames; i++)
-			{
-				if(!frameFile.containsKey(i))
-				{
-					actualFrame = i;
-					break;
-				}
-			}
-			if(actualFrame < 0)
-			{
-				
-			}
+			int actualFrame = currentFrame;
+			
 			if (memory[actualFrame] == null)
 			{
 				memory[actualFrame] = new byte[frameSize];
